@@ -105,6 +105,10 @@ face++的功能最多，百度其次，阿里和腾讯一般般。
 
 ![产品架构](https://raw.githubusercontent.com/chanvi-yunqing/API_Graduation-Album/master/%E6%99%BA%E8%83%BD%E7%9B%B8%E5%86%8C%E5%8A%9F%E8%83%BD%E5%9B%BE.jpg)
 
+#### 产品思维导图
+
+![产品思维导图](https://raw.githubusercontent.com/chanvi-yunqing/API_Graduation-Album/master/%E6%99%BA%E8%83%BD%E7%9B%B8%E5%86%8C%E6%80%9D%E7%BB%B4%E5%AF%BC%E5%9B%BE.jpg)
+
 
 
 
