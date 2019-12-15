@@ -60,7 +60,134 @@ Face++ 提供了人脸检测、83个关键点检测与跟踪、人脸分析、1:
 3. 图像识别
 利用 Face++ 的图像识别技术，开发者的产品可以识别出图片中的文字、场景和物体。
 
-开放形式
+### API使用水平
+- 输入图片
+```
+//人脸比对
+- (void)sessionCompare{
+    NSString *urlStr = @"https://api-cn.faceplusplus.com/facepp/v3/compare";
+    NSURL *url = [NSURL URLWithString:urlStr];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",@"boundary"];
+    [request setValue:contentType forHTTPHeaderField:@"Content-Type"];
+    NSDictionary *dict = @{@"api_key" : @"xxxxxxxxxxxxx",//你的api_key
+                           @"api_secret" : @"xxxxxxxxxxxxx",//你的api_secret
+                          };
+    NSString *path1 = [[NSBundle mainBundle] pathForResource:@"image1" ofType:@"jpeg"];
+    NSString *path2 = [[NSBundle mainBundle] pathForResource:@"image2" ofType:@"jpeg"];
+    NSData *data1 = [NSData dataWithContentsOfFile:path1];
+    NSData *data2 = [NSData dataWithContentsOfFile:path2];
+    
+    ///////////////////////NSURLSession 示例如下:
+    NSData *bodyData = [self bodyDataWithParam:dict fileData:@[@{@"fieldName" : @"image_file1" ,@"data" : data1 , @"fileType" : @"jpeg"},@{@"fieldName" : @"image_file2" ,@"data" : data2 , @"fileType" : @"jpeg"}]];
+    NSURLSessionTask *task = [[NSURLSession sharedSession] uploadTaskWithRequest:request fromData:bodyData completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if (error) {
+            NSLog(@"%@",error);
+        }else{
+            id obj = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
+            NSLog(@"%@",[obj class]);
+            NSLog(@"%@",obj);
+        }
+    }];
+    [task resume];
+    
+    ///////////////////////NSURLConnection 示例如下:
+    /*
+    request.HTTPBody = bodyData;
+    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue new] completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
+        if (connectionError) {
+            NSLog(@"%@",connectionError);
+        }else{
+            id obj = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
+            NSLog(@"%@",[obj class]);
+            NSLog(@"%@",obj);
+        }
+    }];
+    */
+}
+- (NSData *)bodyDataWithParam:(NSDictionary *)param fileData:(NSArray<NSDictionary *> *)fileDatas{
+    NSMutableData *bodyData = [NSMutableData data];
+    //拼接参数
+    [param enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+        [bodyData appendData:[@"--boundary\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+        [bodyData appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:NSUTF8StringEncoding]];
+        [bodyData appendData:[[NSString stringWithFormat:@"%@\r\n",obj] dataUsingEncoding:NSUTF8StringEncoding]];
+    }];
+    //拼接文件二进制数据
+    for (NSDictionary *dic in fileDatas) {
+        NSString *fieldName = dic[@"fieldName"];
+        NSData *fileData = dic[@"data"];
+        NSString *fileType = dic[@"fileType"];
+        [bodyData appendData:[@"--boundary\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+        [bodyData appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", fieldName, fieldName] dataUsingEncoding:NSUTF8StringEncoding]];
+        [bodyData appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", fileType] dataUsingEncoding:NSUTF8StringEncoding]];
+        [bodyData appendData:fileData];
+        [bodyData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+    [bodyData appendData:[@"--boundary--\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    return bodyData;
+    
+}
+```
+- 输出结果
+```
+{
+    "image_id": "Dd2xUw9S/7yjr0oDHHSL/Q==", 
+    "request_id": "1470472868,dacf2ff1-ea45-4842-9c07-6e8418cea78b", 
+    "time_used": 752, 
+    "faces": [
+        {
+            "landmark": {
+                "mouth_upper_lip_left_contour2": {
+                    "y": 185, 
+                    "x": 146
+                }, 
+                "contour_chin": {
+                    "y": 231, 
+                    "x": 137
+                }, 
+               .........省略关键点信息
+                "right_eye_pupil": {
+                    "y": 146, 
+                    "x": 205
+                }, 
+                "mouth_upper_lip_bottom": {
+                    "y": 195, 
+                    "x": 159
+                }
+            }, 
+            "attributes": {
+                "gender": {
+                    "value": "Female"
+                }, 
+                "age": {
+                    "value": 21
+                }, 
+                "glass": {
+                    "value": "None"
+                }, 
+                "headpose": {
+                    "yaw_angle": -26.625063, 
+                    "pitch_angle": 12.921974, 
+                    "roll_angle": 22.814377
+                }, 
+                "smile": {
+                    "threshold": 30.1, 
+                    "value": 2.566890001296997
+                }
+            }, 
+            "face_rectangle": {
+                "width": 140, 
+                "top": 89, 
+                "left": 104, 
+                "height": 141
+            }, 
+            "face_token": "ed319e807e039ae669a4d1af0922a0c8"
+        }
+    ]
+}
+```
 1. API
 通过 API 直接调用 Face++ 的各项能力，适合联网产品。
 
@@ -99,7 +226,7 @@ face++的功能最多，百度其次，阿里和腾讯一般般。
 
 - 总结:经过测评后，我认为face++的人脸识别功能最多，用户体验感相较其他服务平台较佳，返回给用户的数据比较准确与全面，所以我们决定使用face++来完成毕业智能相册的API服务平台。
 
-### 产品原型之作
+
 
 #### 产品功能架构
 
